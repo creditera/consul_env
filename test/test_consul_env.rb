@@ -13,7 +13,7 @@ class TestConsulEnv < MiniTest::Test
     HTTParty.stub :get, ALS_CONSUL_FOLDER do
       result = ConsulEnv.load_folder folder, consul_url: "http://localhost:8500"
 
-      assert_equal 'db_user', result['DB_USER']
+      assert_equal 'db_user', result['ALS_DB_USER']
     end
   end
 
@@ -21,7 +21,7 @@ class TestConsulEnv < MiniTest::Test
     HTTParty.stub :get, ALS_CONSUL_FOLDER do
       result = ConsulEnv.load_folder folder, consul_url: "http://localhost:8500"
 
-      assert_equal 'tomcat_url', result['TOMCAT_SERVER']
+      assert_equal 'tomcat_url', result['ALS_ENV_TOMCAT_SERVER']
     end
   end
 
@@ -29,7 +29,7 @@ class TestConsulEnv < MiniTest::Test
     HTTParty.stub :get, ALS_CONSUL_FOLDER do
       result = ConsulEnv.load_folder folder, consul_url: "http://localhost:8500"
 
-      assert_equal 'tomcat_url', result['TOMCAT_SERVER']
+      assert_equal 'tomcat_url', result['ALS_ENV_TOMCAT_SERVER']
     end
   end
 
@@ -37,7 +37,7 @@ class TestConsulEnv < MiniTest::Test
     HTTParty.stub :get, NAV_CONSUL_FOLDER do
       result = ConsulEnv.load_folder 'NAV', consul_url: "http://localhost:8500", drop_prefixes: ['common', 'urls']
 
-      assert_equal 'tomcat_url', result['TOMCAT_URL']
+      assert_equal 'tomcat_url', result['NAV_TOMCAT_URL']
     end
   end
 
@@ -45,7 +45,7 @@ class TestConsulEnv < MiniTest::Test
     HTTParty.stub :get, [*ALS_CONSUL_FOLDER, *NAV_CONSUL_FOLDER] do
       result = ConsulEnv.load_folder 'NAV', 'ALS', consul_url: "http://localhost:8500", drop_prefixes: ['common', 'urls']
 
-      assert_equal 'tomcat_url', result['TOMCAT_URL']
+      assert_equal 'tomcat_url', result['NAV_TOMCAT_URL']
     end
   end
 
@@ -54,8 +54,8 @@ class TestConsulEnv < MiniTest::Test
 
     result = ConsulEnv.load_folder 'NAV', 'ALS', file_path: yaml_path, drop_prefixes: ['common', 'urls']
     
-    assert_equal 'tomcat_url', result['TOMCAT_URL']
-    assert_equal 'redis_url', result['REDIS_URL']
+    assert_equal 'tomcat_url', result['NAV_ENV_TOMCAT_URL']
+    assert_equal 'redis_url', result['ALS_ENV_REDIS_URL']
   end
 
   def test_raises_error_without_source_option

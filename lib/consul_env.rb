@@ -33,7 +33,7 @@ module ConsulEnv
 
       vars_from_consul = response.map do |resp|
         {
-          key: resp['Key'].gsub("#{f}/", ''),
+          key: resp['Key'],
           value: Base64.decode64(resp['Value'])
         }
       end
@@ -62,7 +62,7 @@ module ConsulEnv
 
     key_val_pairs = consul_vars.map do |key, val|
       {
-        key: key.gsub(/(#{folder.join('|')})\//, ''),
+        key: key,
         value: val
       }
     end
@@ -76,7 +76,7 @@ module ConsulEnv
       opts ||= {}
       seed = Hash.new { |h, k| h[k] = Hash.new(&h.default_proc) }
 
-      dropped_keys = ['env', *opts.fetch(:drop_prefixes, [])]
+      dropped_keys = [*opts.fetch(:drop_prefixes, [])]
 
       variables.reduce(seed) do |accum, hashy|
         consul_key, val = hashy[:key].split('/'), hashy[:value]
