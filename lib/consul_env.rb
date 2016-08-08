@@ -5,9 +5,9 @@ require 'yaml'
 module ConsulEnv
   def self.load_folder *folder, **opts
     if opts[:file_path]
-      config_hash = load_from_yaml opts[:file_path], *folder, **opts
+      config_hash = load_from_yaml(opts[:file_path], *folder, **opts)
     elsif opts[:consul_url]
-      config_hash = load_from_consul opts[:consul_url], *folder, **opts
+      config_hash = load_from_consul(opts[:consul_url], *folder, **opts)
     else
       raise ArgumentError, 'No data source supplied! Please supply a consul_url or file_path parameter.'
     end
@@ -38,18 +38,18 @@ module ConsulEnv
         }
       end
 
-      config_hash = digest_vars vars_from_consul, opts
+      config_hash = digest_vars(vars_from_consul, opts)
 
       final_hash.merge(config_hash)
     end
   end
 
   def self.load_from_yaml yaml_path, *folder, **opts
-    file = File.read yaml_path
-    vars = YAML.load file
+    file = File.read(yaml_path)
+    vars = YAML.load(file)
 
     reducer = -> (hashy, key_arr = [], accum = {}) do
-      return accum.merge!( { key_arr.join('/') => hashy } ) unless hashy.is_a? Hash
+      return accum.merge!( { key_arr.join('/') => hashy } ) unless hashy.is_a?(Hash)
 
       hashy.each_pair do |key, val|
         reducer.call(val, key_arr + [key], accum)
@@ -58,7 +58,7 @@ module ConsulEnv
       accum
     end
 
-    consul_vars = reducer.call vars['consul'].select { |k, v| folder.include?(k) }
+    consul_vars = reducer.call(vars['consul'].select { |k, v| folder.include?(k) })
 
     key_val_pairs = consul_vars.map do |key, val|
       {
@@ -67,11 +67,7 @@ module ConsulEnv
       }
     end
 
-    config_hash = digest_vars key_val_pairs, opts
-
-    ENV.update(config_hash)
-
-    config_hash
+    digest_vars(key_val_pairs, opts)
   end
 
   private
