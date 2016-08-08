@@ -1,0 +1,7 @@
+consul:
+  NAV:
+    env:
+      tomcat_url: tomcat_url
+  ALS:
+    env:
+      redis_url: redis_url
