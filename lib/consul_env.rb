@@ -32,9 +32,12 @@ module ConsulEnv
       response = HTTParty.get("#{url}/v1/kv/#{f}?#{query_string}")
 
       vars_from_consul = response.map do |resp|
+        value = resp['Value']
+        value = Base64.decode64(value) if value
+
         {
           key: resp['Key'],
-          value: Base64.decode64(resp['Value'])
+          value: value
         }
       end
 
