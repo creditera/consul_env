@@ -1,15 +1,18 @@
 require_relative "./consul_env/version"
 require 'httparty'
 require 'yaml'
+require "net/http"
+require "uri"
+
 
 module ConsulEnv
-  def self.load_folder *folder, **opts
-    if opts[:file_path]
-      config_hash = load_from_yaml(opts[:file_path], *folder, **opts)
-    elsif opts[:consul_url]
-      config_hash = load_from_consul(opts[:consul_url], *folder, **opts)
+  def self.load *folder, **opts
+    file_path = opts[:file_path]
+
+    if consul_available?
+      config_hash = load_from_consul(consul_url, *folder, **opts)
     else
-      raise ArgumentError, 'No data source supplied! Please supply a consul_url or file_path parameter.'
+      config_hash = load_from_yaml(file_path, *folder, **opts)
     end
 
     ENV.update(config_hash)
@@ -28,7 +31,7 @@ module ConsulEnv
 
     query_string = request_options.map { |k, v| "#{k}=#{v}" }.join('&')
 
-    combined_config_hash = folder.reduce({}) do |final_hash, f|
+    folder.reduce({}) do |final_hash, f|
       response = HTTParty.get("#{url}/v1/kv/#{f}?#{query_string}")
 
       vars_from_consul = response.map do |resp|
@@ -71,25 +74,44 @@ module ConsulEnv
     end
 
     digest_vars(key_val_pairs, opts)
+  rescue Errno::ENOENT
+    raise ArgumentError, 'Consul is not available and there is no yaml file at the specifed path.'
   end
 
   private
 
-    def self.digest_vars variables, opts = nil
-      opts ||= {}
-      seed = Hash.new { |h, k| h[k] = Hash.new(&h.default_proc) }
+  def self.consul_url
+    ENV.fetch('CONSUL_URL', 'http://localhost:8500')
+  end
 
-      dropped_keys = [*opts.fetch(:drop_prefixes, [])]
+  def self.digest_vars variables, opts = nil
+    opts ||= {}
+    seed = Hash.new { |h, k| h[k] = Hash.new(&h.default_proc) }
 
-      variables.reduce(seed) do |accum, hashy|
-        consul_key, val = hashy[:key].split('/'), hashy[:value]
-        
-        consul_key = consul_key - dropped_keys
-        
-        # After we drop out the prefixes we don't want (like env and the folder path)
-        # we want to join them up and make it look idiomatically correct for an ENV hash
-        # IE: SCREAMING_SNAKE_CASE
-        accum.merge({ consul_key.join("_").upcase => val })
-      end
+    dropped_keys = [*opts.fetch(:drop_prefixes, [])]
+
+    variables.reduce(seed) do |accum, hashy|
+      consul_key, val = hashy[:key].split('/'), hashy[:value]
+
+      consul_key = consul_key - dropped_keys
+
+      # After we drop out the prefixes we don't want (like env and the folder path)
+      # we want to join them up and make it look idiomatically correct for an ENV hash
+      # IE: SCREAMING_SNAKE_CASE
+      accum.merge({ consul_key.join("_").upcase => val })
     end
+  end
+
+  def self.consul_available?
+    @@consul_available ||= begin
+      # Checks to see if consul is available
+      consul_uri = URI.parse("#{consul_url}/v1/agent/self")
+      Net::HTTP.start(consul_uri.host, consul_uri.port) {|http|
+        http.head(consul_uri.path)
+      }
+      true
+    rescue Errno::ECONNREFUSED
+      false
+    end
+  end
 end
