@@ -16,7 +16,7 @@ module ConsulEnv
     end
 
     # Remove any key that is already defined in the environment
-    config_hash.delete_if { | key | EVN.has_key? key }
+    config_hash.delete_if { | key | ENV.has_key? key }
 
     ENV.update(config_hash)
 
