@@ -23,10 +23,20 @@ Or install it yourself as:
 ConsulEnv is meant to be used when your application boots. For Rails projects, put the following code in an initializer, for non-Rails projects, just make sure this code happens before anything depending on the environment variables happens.
 
 ```ruby
-ConsulEnv.load_folder 'ALS', consul_url: 'http://localhost:8500'
+ConsulEnv.load_folder 'ALS'
+```
+or
+```ruby
+ConsulEnv.load 'ALS', file_path: File.expand_path('../../dev_vars.yml', __FILE__)
 ```
 
+
 This will load all of the variables under the specified `ALS/` namespace and set them in your local `ENV`.
+
+
+The gem will automatically check for the availability of consul.
+It will first look for the consul url in `ENV['CONSUL_URL']` and then look at `http://localhost:8500`.
+If consul is not available it will look for the specified YAML file and load variable from there.
 
 ### From YAML
 
@@ -35,7 +45,7 @@ Occasionally, you may not be able (or want) to connect to a running Consul insta
 ```ruby
 ConsulEnv.load_folder 'ALS', file_path: '/path/to/your/yaml'
 ```
-
+If you specify a YAML path and consul is available the YAML file will be ignored
 This method of loading variables expects a YAML file with the following format:
 
 ```yaml
@@ -63,3 +73,11 @@ Let's again take the example variable located at `ALS/foo/bar/baz` in Consul's K
 ```ruby
 ConsulEnv.load_folder 'ALS', consul_url: 'http://localhost:8500', drop_prefixes: ['foo', 'bar']
 ```
+
+### Helper method
+`ConsulEnv` has a helper method that will check for the availability of consul and return a boolean.
+```ruby
+ConsulEnv.consul_available?
+```
+This method just checks for connectivity to consul and stores the result.
+This is an idempotent call.
