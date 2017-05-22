@@ -15,6 +15,9 @@ module ConsulEnv
       config_hash = load_from_yaml(file_path, *folder, **opts)
     end
 
+    # Remove any key that is already defined in the environment
+    config_hash.delete_if { | key | ENV.has_key? key }
+
     ENV.update(config_hash)
 
     config_hash
