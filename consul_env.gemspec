@@ -20,5 +20,5 @@ Gem::Specification.new do |spec|
   spec.add_development_dependency "pry", "~> 0.10.3"
   spec.add_development_dependency "minitest"
 
-  spec.add_runtime_dependency "httparty", ">= 0.13.7"
+  spec.add_runtime_dependency "httparty", "~> 0.13.7"
 end
