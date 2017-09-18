@@ -113,7 +113,7 @@ module ConsulEnv
         http.head(consul_uri.path)
       }
       true
-    rescue Errno::ECONNREFUSED, Errno::EADDRNOTAVAIL
+    rescue
       false
     end
   end
