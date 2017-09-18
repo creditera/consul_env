@@ -113,7 +113,8 @@ module ConsulEnv
         http.head(consul_uri.path)
       }
       true
-    rescue Errno::ECONNREFUSED, Errno::EADDRNOTAVAIL
+    rescue Exception => e
+      warn "[WARN] Consul is unavailable: #{e.inspect}"
       false
     end
   end
