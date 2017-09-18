@@ -114,7 +114,7 @@ module ConsulEnv
       }
       true
     rescue Exception => e
-      warn e
+      warn "Consul is unavailable: #{e.inspect}"
       false
     end
   end
