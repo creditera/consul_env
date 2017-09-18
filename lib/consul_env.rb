@@ -113,7 +113,8 @@ module ConsulEnv
         http.head(consul_uri.path)
       }
       true
-    rescue
+    rescue Exception => e
+      warn e
       false
     end
   end
